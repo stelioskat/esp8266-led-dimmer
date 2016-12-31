@@ -2,8 +2,8 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-#define WLAN_SSID   "FRITZ!Box 7272"
-#define WLAN_PASS   "Aezakmi123!"
+#define WLAN_SSID   "YOUR SSID"
+#define WLAN_PASS   "YOUR PASSWORD"
 
 #define SERVER      "minibian"
 #define SERVERPORT  1883
