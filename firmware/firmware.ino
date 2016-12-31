@@ -11,8 +11,10 @@
 #define LED         4
 #define DS18B20     5 // Dallas DS18B20 digital thermometer
 
-unsigned int brightness = 1023;
 
+unsigned int i = 0;
+unsigned int brightness = 1023;
+bool led_on = false;
 // Create an ESP8266 WiFiClient class to connect to the MQTT server.
 WiFiClient client;
 
@@ -22,6 +24,8 @@ Adafruit_MQTT_Subscribe onoffsw = Adafruit_MQTT_Subscribe(&mqtt, "/light/1");
 // Bug workaround for Arduino 1.6.6, it seems to need a function declaration
 // for some reason (only affects ESP8266, likely an arduino-builder bug).
 void MQTT_connect();
+
+
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -35,7 +39,7 @@ void setup() {
 
   WiFi.begin(WLAN_SSID, WLAN_PASS);
   if (WiFi.status() != WL_CONNECTED) {
-    delay(300);
+    delay(500);
     Serial.print(F("."));
   }
   Serial.println();
@@ -47,8 +51,7 @@ void setup() {
   mqtt.subscribe(&onoffsw);
 }
 
-uint32_t x = 0;
-unsigned int i = 0;
+
 void loop() {
   // Ensure the connection to the MQTT server is alive (this will make the first
   // connection and automatically reconnect when disconnected).  See the MQTT_connect
@@ -59,7 +62,8 @@ void loop() {
   Adafruit_MQTT_Subscribe *subscription;
   while ((subscription = mqtt.readSubscription(10000))) {
 
-    if (strcmp((char *)onoffsw.lastread, "{\"On\":1}") == 0) {
+    if (strcmp((char *)onoffsw.lastread, "{\"On\":1}") == 0 && !led_on) {
+      led_on = true;
       Serial.println(F("On"));
       i = 0;
       while (i < brightness) {
@@ -68,7 +72,8 @@ void loop() {
         delay(4);
       }
     }
-    else if (strcmp((char *)onoffsw.lastread, "{\"On\":0}") == 0) {
+    else if (strcmp((char *)onoffsw.lastread, "{\"On\":0}") == 0 && led_on) {
+      led_on = false;
       Serial.println(F("Off"));
       while (i > 10) {
         analogWrite(LED, i);
@@ -81,35 +86,36 @@ void loop() {
     // Check if the brightness setting has been updated
     else if (strncmp((char *)onoffsw.lastread, "{\"Brightness\":", 14) == 0 ) {
       Serial.print(F("Brightness: "));
-      
+
       unsigned int l = strlen((char *)onoffsw.lastread);
       onoffsw.lastread[l - 1] = '\0'; // overwrite the ending bracket
       unsigned int bright_perc = atoi((char *)onoffsw.lastread + 14);
       Serial.println(bright_perc);
       unsigned int new_brightness = 1023 * bright_perc / 100;
       if (new_brightness > 1023) new_brightness = 1023;
-      
-      if (new_brightness > brightness) {
-        i = brightness;
-        while (i < new_brightness) {
-          analogWrite(LED, i);
-          i += 2;
-          delay(4);
+      if (led_on) {
+        if (new_brightness > i) {
+          while (i < new_brightness) {
+            analogWrite(LED, i);
+            i += 2;
+            delay(4);
+          }
+          analogWrite(LED, new_brightness);
+          i = new_brightness;
+
         }
-        analogWrite(LED, new_brightness);
-        i = new_brightness;
-        
-      }
-      else {
-        while (i > new_brightness) {
-          analogWrite(LED, i);
-          i -= 1;
-          delay(2);
-          
+        else {
+          while (i > new_brightness) {
+            analogWrite(LED, i);
+            i -= 1;
+            delay(2);
+
+          }
+          analogWrite(LED, new_brightness);
+          i = new_brightness;
         }
-        analogWrite(LED, new_brightness);
-        i = new_brightness;
       }
+
       brightness = new_brightness;
     }
   }
