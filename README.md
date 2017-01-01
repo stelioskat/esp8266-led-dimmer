@@ -12,6 +12,10 @@ Of course using MQTT you can control it with whatever you like and not necessari
 
 The layout is made with KiCad but I have also included an screenshot of the schematic, in case you want to make your own PCB with another software.
 
+#### Schematic v0.1
+
+![Schematic](https://github.com/stelioskat/ESP8266-Dimmer/blob/master/pics/schematic.png?raw=true)
+
 ## Firmware
 
 The firmware can be compiled in Arduino IDE using the available ESP8266 package. In order to flash the firmware you will need a USB-to-Serial adapter such as the FTDI232 that I am using (https://github.com/jandelgado/arduino/wiki/FTDI232-USB-to-Serial-converter).
