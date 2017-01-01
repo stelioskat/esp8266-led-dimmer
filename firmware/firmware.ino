@@ -5,14 +5,16 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-#define WLAN_SSID   "FRITZ!Box 7272"
-#define WLAN_PASS   "Aezakmi123!"
+#define WLAN_SSID   "YOUR SSID"
+#define WLAN_PASS   "YOUR PASSWORD"
 
-#define SERVER      "minibian"
-#define SERVERPORT  1883
+#define SERVER      "minibian" // The hostname of the server where the MQTT broker is installed
+#define SERVERPORT  1883 // The port of the MQTT broker
 
-#define LED         4
-#define DS18B20     5 // Dallas DS18B20 digital thermometer
+#define LED         4   // Pin controlling to the LED strip.
+#define DS18B20     5   // Pin of Dallas DS18B20 digital thermometer
+
+#define TMP_INTER   5  // Update interval of temperature given in minutes
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(DS18B20);
@@ -39,13 +41,12 @@ void MQTT_connect();
 
 
 void setup() {
-  // Enable temperature sensor
+  // Initialization
   temp_sensor.begin();
-
   pinMode(LED, OUTPUT);
+  
   Serial.begin(74880);
   delay(10);
-
   // Connect to WiFi access point.
   Serial.println(); Serial.println();
   Serial.print(F("Connecting to "));
@@ -63,6 +64,8 @@ void setup() {
 
   // Setup MQTT subscription for onoff feed.
   mqtt.subscribe(&onoffsw);
+
+  // Initial temperature reading
   updateTemperature();
 }
 
@@ -72,10 +75,8 @@ void loop() {
   // connection and automatically reconnect when disconnected).  See the MQTT_connect
   // function definition further below.
   MQTT_connect();
-  // try to spend your time here
 
-  Adafruit_MQTT_Subscribe *subscription;
-  while ((subscription = mqtt.readSubscription(10000))) {
+  while (mqtt.readSubscription(10000)) {
 
     if (strcmp((char *)onoffsw.lastread, "{\"On\":1}") == 0 && !led_on) {
 
@@ -138,7 +139,8 @@ void loop() {
     }
   }
 
-  if (millis() - last_temp_millis > 5000) {
+  // Update temperature every TMP_INTER minutes
+  if (millis() - last_temp_millis > TMP_INTER*60000) {
     updateTemperature();
   }
 }
