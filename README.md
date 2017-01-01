@@ -1,4 +1,4 @@
-# ESP8266 Dimmer (MQTT controlled)
+# ESP8266 LED Dimmer (MQTT controlled)
 This is a very simple wifi enabled (ESP8266 12e) LED dimmer for single colored LED strips.
 
 Its purpose was originally to be controlled by Node Red (http://nodered.org) and node-red-contrib-homekit (https://flows.nodered.org/node/node-red-contrib-homekit) using MQTT events. Thus, one could control this with Apple Homekit.
