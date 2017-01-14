@@ -1,0 +1,12 @@
+sep=;
+"Id";"Designator";"Package";"Quantity";"Designation";"Supplier and ref";
+1;"C1,C2";"C_0402";2;"100n";;;
+2;"P2";"Socket_Strip_Straight_1x03";1;"Serial";;;
+3;"P4";"Socket_Strip_Straight_1x02";1;"ProgMod";;;
+4;"R1";"R_0805";1;"10k";;;
+5;"U1";"SOT-223";1;"TLV1117";;;
+6;"P3";"AK300-2";1;"LED";;;
+7;"U2";"ESP-12E";1;"ESP-12E";;;
+8;"Q1";"TO-220_Neutral123_Vertical";1;"IRLB8721";;;
+9;"P1";"BARREL_JACK";1;"CONN_01X03";;;
+10;"C3";"C_0402";1;"1u";;;
