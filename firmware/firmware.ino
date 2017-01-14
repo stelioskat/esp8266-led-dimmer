@@ -17,12 +17,13 @@
 unsigned int i = 0;
 unsigned int brightness = 1023;
 bool led_on = false;
+
 // Create an ESP8266 WiFiClient class to connect to the MQTT server.
 WiFiClient client;
 
 Adafruit_MQTT_Client mqtt(&client, SERVER, SERVERPORT);
 Adafruit_MQTT_Subscribe onoffsw = Adafruit_MQTT_Subscribe(&mqtt, "/light/1");
-Adafruit_MQTT_Publish temp_mqtt = Adafruit_MQTT_Publish(&mqtt, "/temp/1");
+Adafruit_MQTT_Publish status_mqtt = Adafruit_MQTT_Publish(&mqtt, "/light/1/status");
 
 // Bug workaround for Arduino 1.6.6, it seems to need a function declaration
 // for some reason (only affects ESP8266, likely an arduino-builder bug).
@@ -51,7 +52,9 @@ void setup() {
 
   // Setup MQTT subscription for onoff feed.
   mqtt.subscribe(&onoffsw);
-  
+
+  MQTT_connect();
+  status_mqtt.publish("{\"On\":0, \"Brightness\":100}");
 }
 
 
