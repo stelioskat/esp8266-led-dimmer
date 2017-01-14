@@ -1,6 +1,3 @@
-#include <OneWire.h>
-#include <DallasTemperature.h>
-
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
@@ -15,13 +12,6 @@
 #define DS18B20     5   // Pin of Dallas DS18B20 digital thermometer
 
 #define TMP_INTER   5  // Update interval of temperature given in minutes
-
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(DS18B20);
-// Pass our oneWire reference to Dallas Temperature.
-DallasTemperature temp_sensor(&oneWire);
-float temperature;
-unsigned long last_temp_millis = 0;
 
 
 unsigned int i = 0;
@@ -38,11 +28,8 @@ Adafruit_MQTT_Publish temp_mqtt = Adafruit_MQTT_Publish(&mqtt, "/temp/1");
 // for some reason (only affects ESP8266, likely an arduino-builder bug).
 void MQTT_connect();
 
-
-
 void setup() {
   // Initialization
-  temp_sensor.begin();
   pinMode(LED, OUTPUT);
   
   Serial.begin(74880);
@@ -64,9 +51,7 @@ void setup() {
 
   // Setup MQTT subscription for onoff feed.
   mqtt.subscribe(&onoffsw);
-
-  // Initial temperature reading
-  updateTemperature();
+  
 }
 
 
@@ -78,6 +63,7 @@ void loop() {
 
   while (mqtt.readSubscription(10000)) {
 
+    // Turn the strip on
     if (strcmp((char *)onoffsw.lastread, "{\"On\":1}") == 0 && !led_on) {
 
       led_on = true;
@@ -90,6 +76,7 @@ void loop() {
       }
 
     }
+    // Turn the strip off
     else if (strcmp((char *)onoffsw.lastread, "{\"On\":0}") == 0 && led_on) {
 
       led_on = false;
@@ -103,7 +90,7 @@ void loop() {
       i = 0;
 
     }
-    // Check if the brightness setting has been updated
+    // Update the brightness value
     else if (strncmp((char *)onoffsw.lastread, "{\"Brightness\":", 14) == 0 ) {
 
       Serial.print(F("Brightness: "));
@@ -135,32 +122,8 @@ void loop() {
       }
 
       brightness = new_brightness;
-
     }
   }
-
-  // Update temperature every TMP_INTER minutes
-  if (millis() - last_temp_millis > TMP_INTER*60000) {
-    updateTemperature();
-  }
-}
-
-
-void updateTemperature() {
-  Serial.print("Requesting temperature...");
-
-  temp_sensor.requestTemperatures(); // Send the command to get temperatures
-  Serial.println("DONE");
-  // After we got the temperatures, we can print them here.
-  // We use the function ByIndex, and as an example get the temperature from the first sensor only.
-  Serial.print("Temperature is: ");
-  Serial.println(temp_sensor.getTempCByIndex(0));
-
-  temperature = temp_sensor.getTempCByIndex(0);
-
-  temp_mqtt.publish(temperature);
-
-  last_temp_millis = millis();
 }
 
 
