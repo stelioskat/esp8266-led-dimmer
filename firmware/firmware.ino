@@ -9,9 +9,6 @@
 #define SERVERPORT  1883 // The port of the MQTT broker
 
 #define LED         4   // Pin controlling to the LED strip.
-#define DS18B20     5   // Pin of Dallas DS18B20 digital thermometer
-
-#define TMP_INTER   5  // Update interval of temperature given in minutes
 
 
 unsigned int i = 0;
@@ -25,29 +22,27 @@ Adafruit_MQTT_Client mqtt(&client, SERVER, SERVERPORT);
 Adafruit_MQTT_Subscribe onoffsw = Adafruit_MQTT_Subscribe(&mqtt, "/light/1");
 Adafruit_MQTT_Publish status_mqtt = Adafruit_MQTT_Publish(&mqtt, "/light/1/status");
 
-// Bug workaround for Arduino 1.6.6, it seems to need a function declaration
-// for some reason (only affects ESP8266, likely an arduino-builder bug).
-void MQTT_connect();
-
 void setup() {
   // Initialization
   pinMode(LED, OUTPUT);
   
-  Serial.begin(74880);
-  delay(10);
-  // Connect to WiFi access point.
-  Serial.println(); Serial.println();
-  Serial.print(F("Connecting to "));
-  Serial.println(WLAN_SSID);
-
-  WiFi.begin(WLAN_SSID, WLAN_PASS);
-  if (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(F("."));
-  }
+  Serial.begin(115200);
   Serial.println();
-  Serial.println(F("WiFi connected"));
-  Serial.println(F("IP address: "));
+  Serial.println();
+
+  // We start by connecting to a WiFi network
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
   // Setup MQTT subscription for onoff feed.
@@ -64,7 +59,7 @@ void loop() {
   // function definition further below.
   MQTT_connect();
 
-  while (mqtt.readSubscription(10000)) {
+  while (mqtt.readSubscription(1000)) {
 
     // Turn the strip on
     if (strcmp((char *)onoffsw.lastread, "{\"On\":1}") == 0 && !led_on) {
